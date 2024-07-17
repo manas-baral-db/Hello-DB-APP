@@ -1,23 +1,22 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-alpine
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the application JAR file to the container
-COPY target/Hello-DB-APP.jar
-
-# Download and install the New Relic Java agent
-RUN mkdir -p /newrelic
-RUN wget -O /newrelic/newrelic.jar https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip && \
-    unzip /newrelic/newrelic-java.zip -d /newrelic && \
-    rm /newrelic/newrelic-java.zip
-
-# Copy the New Relic configuration file
-COPY newrelic/newrelic.yml /newrelic/newrelic.yml
-
-# Set the New Relic license key as an environment variable
-ENV NEW_RELIC_LICENSE_KEY=your_license_key
-
-# Run the application with the New Relic agent
-ENTRYPOINT ["java", "-javaagent:/newrelic/newrelic.jar", "-jar", "app.jar"]
+ARG ARTIFACTORY_HOST
+ENV ARTIFACTORY_HOST=$ARTIFACTORY_HOST
+ARG ARTIFACTORY_BASE_URL
+ENV ARTIFACTORY_BASE_URL=$ARTIFACTORY_BASE_URL
+ARG ARTIFACTORY_DEVELOPER_USERNAME
+ENV ARTIFACTORY_DEVELOPER_USERNAME=$ARTIFACTORY_DEVELOPER_USERNAME
+ARG ARTIFACTORY_DEVELOPER_PASSWORD
+ENV ARTIFACTORY_DEVELOPER_PASSWORD=$ARTIFACTORY_DEVELOPER_PASSWORD
+ARG ARTIFACTORY_RELEASER_USERNAME
+ENV ARTIFACTORY_RELEASER_USERNAME=$ARTIFACTORY_RELEASER_USERNAME
+ARG ARTIFACTORY_RELEASER_PASSWORD
+ENV ARTIFACTORY_RELEASER_PASSWORD=$ARTIFACTORY_RELEASER_PASSWORD
+ARG NEW_RELIC_PROXY_HOST
+ENV NEW_RELIC_PROXY_HOST=$NEW_RELIC_PROXY_HOST
+ARG NEW_RELIC_PROXY_PORT
+ENV NEW_RELIC_PROXY_PORT=$NEW_RELIC_PROXY_PORT
+ARG NEW_RELIC_LICENSE_KEY
+ENV NEW_RELIC_LICENSE_KEY=$NR_LICENSEKEY
+ENV NEWRELIC_APM_JAVA_HOME="/usr/local"
+ENV NEWRELIC_APM_JAVA_VERSION="8.12.0"
+ENV NEW_RELIC_APP_NAME="sample-java-proc"
+ENV ARTIFACTORY_KEY=$ARTIFACTORY_KEY
