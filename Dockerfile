@@ -21,4 +21,30 @@ ENV NEWRELIC_APM_JAVA_VERSION="8.12.0"
 ENV NEW_RELIC_APP_NAME="sample-java-proc"
 ENV ARTIFACTORY_KEY=$ARTIFACTORY_KEY
 # Downloading NR Agent 
-RUN curl -L -H "X-JFrog-Art-Api:$ARTIFACTORY_KEY" -O 
+RUN curl -L -H "X-JFrog-Art-Api:$ARTIFACTORY_KEY" -O https://artifactory.sdlc.ctl.gcp.db.com/artifactory/dist-newrelic-cache/newrelic/java-agent/newrelic-agent/${NEWRELIC_APM_JAVA_VERSION}/newrelic-java-${NEWRELIC_APM_JAVA_VERSION}.zip -k
+# Unzip and copy the files
+RUN unzip newrelic-java-${NEWRELIC_APM_JAVA_VERSION}.zip
+RUN rm -f newrelic-java-${NEWRELIC_APM_JAVA_VERSION}.zip
+RUN cp -r ./newrelic $NEWRELIC_APM_JAVA_HOME
+# Java APM Agent Path
+ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/newrelic/newrelic.jar"
+WORKDIR /app
+COPY..
+RUN chmod +x ./gradle
+RUN ./gradlew assemble\
+ -PARTIFACTORY_HOST=$PARTIFACTORY_HOST\
+ -PARTIFACTORY_BASE_URL=$PARTIFACTORY_BASE_URL\
+ -PARTIFACTORY_DEVELOPER_USERNAME=$PARTIFACTORY_DEVELOPER_USERNAME\
+ -PARTIFACTORY_DEVELOPER_PASSWORD=$PARTIFACTORY_DEVELOPER_PASSWORD\
+ -PARTIFACTORY_RELEASER_USERNAME=$PARTIFACTORY_RELEASER_USERNAME
+ -PARTIFACTORY_RELEASER_PASSWORD=$PARTIFACTORY_RELEASER_PASSWORD
+# Moving application.jar, newrelic.jar newrelic.yml intosame folder and providing entry point to run the image
+RUN mkdir -p /app/build/libs/java-sample
+RUN cp /app/build/libs/sample-java-app-0.0.1-SNAPSHOT.jar /app/build/libs/java-sample
+WORKDIR /usr/local
+RUN cp /newrelic/newrelic.jar /app/build/libs/java-sample/
+RUN cp /newrelic/newrelic.yml /app/build/libs/jsvs-sample/
+ENV NEW_RELIC_APP_NAME="sample-java-poc"
+ENV NEW_RELIC_LICENSE_KEY=$NR_LICENSEKEY
+ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
+ENTRYPOINT ["java","-javaagent:/app/build/libs/java-sample/newrelic.jar","-jar","/app/build/libs/java-sample/sample-java-app-0.0.1-SNAPSHOT.jar"]
